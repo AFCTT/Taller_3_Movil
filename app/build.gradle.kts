@@ -50,7 +50,6 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-
     // Firebase
     implementation(libs.firebase.auth)
     implementation(libs.firebase.database)
@@ -58,11 +57,18 @@ dependencies {
     implementation(libs.google.firebase.database)
     implementation(libs.play.services.auth)
     implementation(libs.play.services.location)
-
     // Google Maps y Location
     implementation(libs.maps.compose)
     implementation(libs.accompanist.permissions)
     implementation(libs.play.services.maps.v1820)
+
+    // Credential Manager (para Google Sign-In nuevo)
+    implementation (libs.androidx.credentials)
+    implementation ("androidx.credentials:credentials:1.1.0")
+
+    // Play Services Location y Maps (si los usas)
+    implementation(libs.play.services.location.v2101)
+    implementation (libs.play.services.maps.v1810)
 
     // Navegación Compose
     implementation(libs.androidx.navigation.compose)
@@ -72,6 +78,7 @@ dependencies {
 
     // Otros
     implementation(libs.androidx.appcompat)
+    implementation(libs.googleid)
 
     // Test
     testImplementation(libs.junit)

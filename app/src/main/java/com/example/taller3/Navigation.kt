@@ -12,7 +12,7 @@ import com.example.taller3.screens.MapScreen
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = "login") {
+    NavHost(navController = navController, startDestination = "map") {
         composable("login") {
             LoginScreen(navController)
         }
