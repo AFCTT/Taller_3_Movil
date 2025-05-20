@@ -13,3 +13,29 @@
 .externalNativeBuild
 .cxx
 local.properties
+# Gradle files
+
+
+# Log/OS Files
+*.log
+
+
+
+
+*.apk
+output.json
+
+misc.xml
+deploymentTargetDropDown.xml
+render.experimental.xml
+
+# Keystore files
+*.jks
+*.keystore
+
+# Google Services (e.g. APIs or Firebase)
+google-services.json
+google_maps_api.xml
+
+# Android Profiling
+*.hprof
