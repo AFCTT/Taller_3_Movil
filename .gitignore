@@ -39,3 +39,5 @@ google_maps_api.xml
 
 # Android Profiling
 *.hprof
+app/google-services.json
+app/src/main/res/values/google_maps_api.xml
