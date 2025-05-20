@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Taller 3</string>
+    <string name="default_web_client_id">283427257401-j7hp82bvuhdn025latpnem8ok7t35ujr.apps.googleusercontent.com</string>
+
 </resources>

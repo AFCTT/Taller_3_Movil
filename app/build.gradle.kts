@@ -41,7 +41,7 @@ android {
 }
 
 dependencies {
-
+    // Core y Compose
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -50,11 +50,30 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
+    // Firebase
     implementation(libs.firebase.auth)
     implementation(libs.firebase.database)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.play.services.maps)
+    implementation(libs.google.firebase.auth)
+    implementation(libs.google.firebase.database)
+    implementation(libs.play.services.auth)
     implementation(libs.play.services.location)
+
+    // Google Maps y Location
+    implementation(libs.maps.compose)
+    implementation(libs.accompanist.permissions)
+    implementation(libs.play.services.maps.v1820)
+
+    // Navegación Compose
+    implementation(libs.androidx.navigation.compose)
+
+// Accompanist para permisos
+    implementation(libs.accompanist.permissions.v0340alpha)
+
+    // Otros
+    implementation(libs.androidx.appcompat)
+
+    // Test
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
