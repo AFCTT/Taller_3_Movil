@@ -24,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.net.URL
+import kotlin.random.Random
 
 @SuppressLint("MissingPermission")
 @OptIn(ExperimentalPermissionsApi::class)
@@ -40,6 +41,7 @@ fun MapScreen(navController: NavController) {
     val mapProperties by remember { mutableStateOf(MapProperties(isMyLocationEnabled = true)) }
     val cameraPositionState = rememberCameraPositionState()
     val dbRef = FirebaseDatabase.getInstance().getReference("users")
+    val pathRef = FirebaseDatabase.getInstance().getReference("user_paths")
     val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
     var isTracking by remember { mutableStateOf(false) }
@@ -48,6 +50,7 @@ fun MapScreen(navController: NavController) {
     val otherUsers = remember { mutableStateMapOf<String, MutableList<LatLng>>() }
     val userPhotos = remember { mutableStateMapOf<String, BitmapDescriptor>() }
     val userNames = remember { mutableStateMapOf<String, String>() }
+    val userColors = remember { mutableStateMapOf<String, Color>() }
 
     var locationCallback: LocationCallback? by remember { mutableStateOf(null) }
 
@@ -76,13 +79,24 @@ fun MapScreen(navController: NavController) {
                         userNames[uid] = name
 
                         if (isOnline) {
-                            val latitude = userSnapshot.child("latitude").getValue(Double::class.java) ?: 0.0
-                            val longitude = userSnapshot.child("longitude").getValue(Double::class.java) ?: 0.0
-                            val points = otherUsers.getOrPut(uid) { mutableStateListOf() }
-                            points.add(LatLng(latitude, longitude))
+                            pathRef.child(uid).addValueEventListener(object : ValueEventListener {
+                                override fun onDataChange(pathSnapshot: DataSnapshot) {
+                                    val points = otherUsers.getOrPut(uid) { mutableStateListOf() }
+                                    points.clear()
+                                    pathSnapshot.children.forEach { pointSnapshot ->
+                                        val lat = pointSnapshot.child("latitude").getValue(Double::class.java) ?: 0.0
+                                        val lon = pointSnapshot.child("longitude").getValue(Double::class.java) ?: 0.0
+                                        points.add(LatLng(lat, lon))
+                                    }
+                                }
+
+                                override fun onCancelled(error: DatabaseError) {
+                                    Log.e("MapScreen", "Path error: ${error.message}")
+                                }
+                            })
 
                             if (!userPhotos.containsKey(uid) && !photoUrl.isNullOrEmpty()) {
-                                snapshot.child(uid).ref.child("photoUrl").ref.get().addOnSuccessListener {
+                                userSnapshot.ref.child("photoUrl").get().addOnSuccessListener {
                                     val bmp = runBlocking { getBitmapFromUrl(photoUrl) }
                                     bmp?.let {
                                         val scaled = Bitmap.createScaledBitmap(it, 130, 130, false)
@@ -97,7 +111,6 @@ fun MapScreen(navController: NavController) {
                     }
                 }
             }
-
 
             override fun onCancelled(error: DatabaseError) {
                 Log.e("MapScreen", "Database error: ${error.message}")
@@ -118,6 +131,9 @@ fun MapScreen(navController: NavController) {
 
             otherUsers.forEach { (uid, points) ->
                 val name = userNames[uid] ?: "Usuario"
+                val color = userColors.getOrPut(uid) {
+                    Color(Random.nextInt(256), Random.nextInt(256), Random.nextInt(256))
+                }
                 if (points.size > 1) {
                     for (i in 1 until points.size) {
                         val speed = calculateSpeed(points[i - 1], points[i])
@@ -163,6 +179,7 @@ fun MapScreen(navController: NavController) {
                                     polylinePoints.add(latLng)
                                     dbRef.child(userId).child("latitude").setValue(loc.latitude)
                                     dbRef.child(userId).child("longitude").setValue(loc.longitude)
+                                    pathRef.child(userId).push().setValue(mapOf("latitude" to loc.latitude, "longitude" to loc.longitude))
                                     if (followUser) {
                                         cameraPositionState.position = CameraPosition.fromLatLngZoom(latLng, 15f)
                                     }
@@ -174,6 +191,7 @@ fun MapScreen(navController: NavController) {
                             polylinePoints.clear()
                             dbRef.child(userId).child("latitude").setValue(0.0)
                             dbRef.child(userId).child("longitude").setValue(0.0)
+                            pathRef.child(userId).removeValue()
                         }
                     }
                 )
