@@ -48,7 +48,7 @@ Este proyecto es una aplicación Android desarrollada en **Kotlin** con **Jetpac
 ```
 
 ## 📷 Vista previa
-![Icono personalizado en mapa](https://your-screenshot-url.com)
+![Icono personalizado en mapa](images/ic_app)
 
 ## ✅ Requisitos para ejecución
 - Tener configurado Firebase con Auth, Realtime Database y Storage.
@@ -56,7 +56,7 @@ Este proyecto es una aplicación Android desarrollada en **Kotlin** con **Jetpac
 - API Key habilitada para Google Maps SDK en Google Cloud Console.
 
 ## ✨ Autores
-**Juan David Sanchez - juandavid0420-rgb**
+**Juan David Sanchez - juandavid0420-rgb** //
 **Andres Centanaro - AFCTT**
 
 ¡Gracias por revisar este proyecto! 💙 Siéntete libre de usarlo y mejorarlo.
