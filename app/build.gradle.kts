@@ -69,7 +69,8 @@ dependencies {
     // Play Services Location y Maps (si los usas)
     implementation(libs.play.services.location.v2101)
     implementation (libs.play.services.maps.v1810)
-
+    //Coil
+    implementation(libs.coil.compose)
     // Navegación Compose
     implementation(libs.androidx.navigation.compose)
 
