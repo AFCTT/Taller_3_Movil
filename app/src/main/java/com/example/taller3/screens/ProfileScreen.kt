@@ -1,5 +1,6 @@
 package com.example.taller3.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,6 +30,9 @@ fun ProfileScreen(navController: NavHostController) {
         dbRef.get().addOnSuccessListener {
             name = it.child("name").getValue(String::class.java) ?: ""
             phone = it.child("phone").getValue(String::class.java) ?: ""
+        }.addOnFailureListener { exception ->
+            Log.e("ProfileScreen", "Failed to load user data: ${exception.message}")
+            Toast.makeText(context, "Error al cargar datos: ${exception.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -68,10 +72,12 @@ fun ProfileScreen(navController: NavHostController) {
             if (name.isNotEmpty() && phone.isNotEmpty()) {
                 dbRef.updateChildren(mapOf("name" to name, "phone" to phone))
                     .addOnSuccessListener {
+                        Log.d("ProfileScreen", "Profile updated successfully")
                         Toast.makeText(context, "Perfil actualizado", Toast.LENGTH_SHORT).show()
                     }
-                    .addOnFailureListener {
-                        Toast.makeText(context, "Error: ${it.message}", Toast.LENGTH_SHORT).show()
+                    .addOnFailureListener { exception ->
+                        Log.e("ProfileScreen", "Failed to update profile: ${exception.message}")
+                        Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
                     }
             }
         }) {
@@ -91,10 +97,22 @@ fun ProfileScreen(navController: NavHostController) {
 
         Button(onClick = {
             if (newPassword.length >= 6) {
-                auth.currentUser?.updatePassword(newPassword)?.addOnSuccessListener {
-                    Toast.makeText(context, "Contraseña actualizada", Toast.LENGTH_SHORT).show()
-                }?.addOnFailureListener {
-                    Toast.makeText(context, "Error: ${it.message}", Toast.LENGTH_SHORT).show()
+                val currentUser = auth.currentUser
+                if (currentUser != null) {
+                    currentUser.updatePassword(newPassword).addOnSuccessListener {
+                        Log.d("ProfileScreen", "Password updated successfully")
+                        Toast.makeText(context, "Contraseña actualizada", Toast.LENGTH_SHORT).show()
+                    }.addOnFailureListener { exception ->
+                        Log.e("ProfileScreen", "Failed to update password: ${exception.message}")
+                        Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
+                        if (exception.message?.contains("recent login required") == true) {
+                            Toast.makeText(context, "Por favor, vuelve a iniciar sesión", Toast.LENGTH_SHORT).show()
+                            navController.navigate("login")
+                        }
+                    }
+                } else {
+                    Toast.makeText(context, "Usuario no autenticado", Toast.LENGTH_SHORT).show()
+                    navController.navigate("login")
                 }
             } else {
                 Toast.makeText(context, "La contraseña debe tener mínimo 6 caracteres", Toast.LENGTH_SHORT).show()

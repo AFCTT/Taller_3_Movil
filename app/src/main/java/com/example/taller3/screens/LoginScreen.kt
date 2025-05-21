@@ -2,6 +2,7 @@ package com.example.taller3.screens
 
 import android.app.Activity
 import android.content.Intent
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -88,7 +89,11 @@ fun saveUserToDatabase(user: FirebaseUser) {
                 "latitude" to 0.0,
                 "longitude" to 0.0
             )
-            ref.setValue(userData)
+            ref.setValue(userData).addOnFailureListener { exception ->
+                Log.e("LoginScreen", "Failed to save user data: ${exception.message}")
+            }
         }
+    }.addOnFailureListener { exception ->
+        Log.e("LoginScreen", "Failed to check user existence: ${exception.message}")
     }
 }

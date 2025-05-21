@@ -52,11 +52,13 @@ fun MenuScreen(navController: NavController) {
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
             onClick = {
                 auth.signOut()
+
                 navController.navigate("login") {
                     popUpTo("menu") { inclusive = true }
                 }
             },
             modifier = Modifier.fillMaxWidth()
+                .padding(vertical = 8.dp)
         ) {
             Text("Cerrar sesión")
         }

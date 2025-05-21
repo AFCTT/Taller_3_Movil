@@ -1,5 +1,7 @@
 package com.example.taller3.screens
 
+import android.net.ConnectivityManager
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -10,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
@@ -88,21 +91,23 @@ fun RegisterScreen(navController: NavController) {
                             "email" to email,
                             "phone" to phone,
                             "isOnline" to false,
-                            "lat" to 0.0,
-                            "lng" to 0.0
+                            "latitude" to 0.0,
+                            "longitude" to 0.0
                         )
-
                         database.child("users").child(uid).setValue(userData)
                             .addOnSuccessListener {
+                                Log.d("RegisterScreen", "User data saved successfully")
                                 Toast.makeText(context, "Registro exitoso", Toast.LENGTH_SHORT).show()
                                 navController.navigate("login")
                             }
-                            .addOnFailureListener {
-                                Toast.makeText(context, "Error: ${it.message}", Toast.LENGTH_SHORT).show()
+                            .addOnFailureListener { exception ->
+                                Log.e("RegisterScreen", "Failed to save user data: ${exception.message}")
+                                Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
                             }
                     }
-                    .addOnFailureListener {
-                        Toast.makeText(context, "Error: ${it.message}", Toast.LENGTH_SHORT).show()
+                    .addOnFailureListener { exception ->
+                        Log.e("RegisterScreen", "Authentication failed: ${exception.message}")
+                        Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
                     }
             },
             modifier = Modifier.fillMaxWidth()
@@ -116,4 +121,9 @@ fun RegisterScreen(navController: NavController) {
             Text("¿Ya tienes cuenta? Inicia sesión")
         }
     }
+}
+fun isNetworkAvailable(context: android.content.Context): Boolean {
+    val connectivityManager = ContextCompat.getSystemService(context, ConnectivityManager::class.java)
+    val activeNetwork = connectivityManager?.activeNetworkInfo
+    return activeNetwork != null && activeNetwork.isConnected
 }
