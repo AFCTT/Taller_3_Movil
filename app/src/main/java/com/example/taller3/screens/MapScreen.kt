@@ -98,6 +98,7 @@ fun MapScreen(navController: NavController) {
                 }
             }
 
+
             override fun onCancelled(error: DatabaseError) {
                 Log.e("MapScreen", "Database error: ${error.message}")
             }
