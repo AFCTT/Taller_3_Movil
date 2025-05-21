@@ -1,5 +1,4 @@
 package com.example.taller3.screens
-// ✅ IMPORTS NECESARIOS
 import android.Manifest
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
@@ -44,6 +43,7 @@ fun MapScreen(navController: NavController) {
     val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
     var isTracking by remember { mutableStateOf(false) }
+    var followUser by remember { mutableStateOf(true) }
     val polylinePoints = remember { mutableStateListOf<LatLng>() }
     val otherUsers = remember { mutableStateMapOf<String, MutableList<LatLng>>() }
     val userPhotos = remember { mutableStateMapOf<String, BitmapDescriptor>() }
@@ -140,37 +140,49 @@ fun MapScreen(navController: NavController) {
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Compartir ubicación")
-            Switch(
-                checked = isTracking,
-                onCheckedChange = { checked ->
-                    isTracking = checked
-                    dbRef.child(userId).child("isOnline").setValue(checked)
+            Column {
+                Text("Compartir ubicación")
+                Switch(
+                    checked = isTracking,
+                    onCheckedChange = { checked ->
+                        isTracking = checked
+                        dbRef.child(userId).child("isOnline").setValue(checked)
 
-                    if (checked) {
-                        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 4000L)
-                            .setMinUpdateIntervalMillis(2000L)
-                            .build()
+                        if (checked) {
+                            val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 4000L)
+                                .setMinUpdateIntervalMillis(2000L)
+                                .build()
 
-                        locationCallback = object : LocationCallback() {
-                            override fun onLocationResult(result: LocationResult) {
-                                val loc = result.lastLocation ?: return
-                                val latLng = LatLng(loc.latitude, loc.longitude)
-                                polylinePoints.add(latLng)
-                                dbRef.child(userId).child("latitude").setValue(loc.latitude)
-                                dbRef.child(userId).child("longitude").setValue(loc.longitude)
-                                cameraPositionState.position = CameraPosition.fromLatLngZoom(latLng, 15f)
+                            locationCallback = object : LocationCallback() {
+                                override fun onLocationResult(result: LocationResult) {
+                                    val loc = result.lastLocation ?: return
+                                    val latLng = LatLng(loc.latitude, loc.longitude)
+                                    polylinePoints.add(latLng)
+                                    dbRef.child(userId).child("latitude").setValue(loc.latitude)
+                                    dbRef.child(userId).child("longitude").setValue(loc.longitude)
+                                    if (followUser) {
+                                        cameraPositionState.position = CameraPosition.fromLatLngZoom(latLng, 15f)
+                                    }
+                                }
                             }
+                            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback!!, context.mainLooper)
+                        } else {
+                            locationCallback?.let { fusedLocationClient.removeLocationUpdates(it) }
+                            polylinePoints.clear()
+                            dbRef.child(userId).child("latitude").setValue(0.0)
+                            dbRef.child(userId).child("longitude").setValue(0.0)
                         }
-                        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback!!, context.mainLooper)
-                    } else {
-                        locationCallback?.let { fusedLocationClient.removeLocationUpdates(it) }
-                        polylinePoints.clear()
-                        dbRef.child(userId).child("latitude").setValue(0.0)
-                        dbRef.child(userId).child("longitude").setValue(0.0)
                     }
-                }
-            )
+                )
+            }
+
+            Column {
+                Text("Seguir mi ubicación")
+                Switch(
+                    checked = followUser,
+                    onCheckedChange = { followUser = it }
+                )
+            }
         }
     }
 }
