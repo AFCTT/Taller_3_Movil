@@ -1,8 +1,8 @@
 package com.example.taller3.screens
+
 import android.Manifest
 import android.annotation.SuppressLint
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.graphics.*
 import android.location.Location
 import android.util.Log
 import androidx.compose.foundation.layout.*
@@ -85,7 +85,9 @@ fun MapScreen(navController: NavController) {
                                 snapshot.child(uid).ref.child("photoUrl").ref.get().addOnSuccessListener {
                                     val bmp = runBlocking { getBitmapFromUrl(photoUrl) }
                                     bmp?.let {
-                                        userPhotos[uid] = BitmapDescriptorFactory.fromBitmap(Bitmap.createScaledBitmap(it, 100, 100, false))
+                                        val scaled = Bitmap.createScaledBitmap(it, 130, 130, false)
+                                        val circular = getCircularBitmap(scaled)
+                                        userPhotos[uid] = BitmapDescriptorFactory.fromBitmap(circular)
                                     }
                                 }
                             }
@@ -212,4 +214,18 @@ suspend fun getBitmapFromUrl(url: String): Bitmap? {
             null
         }
     }
+}
+
+fun getCircularBitmap(bitmap: Bitmap): Bitmap {
+    val size = minOf(bitmap.width, bitmap.height)
+    val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(output)
+    val paint = Paint().apply { isAntiAlias = true }
+    val rect = Rect(0, 0, size, size)
+    val rectF = RectF(rect)
+    canvas.drawARGB(0, 0, 0, 0)
+    canvas.drawOval(rectF, paint)
+    paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+    canvas.drawBitmap(bitmap, null, rect, paint)
+    return output
 }
