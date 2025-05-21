@@ -39,33 +39,40 @@ fun LoginScreen(navController: NavController) {
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-        try {
-            val account = task.getResult(ApiException::class.java)!!
-            val credential = com.google.firebase.auth.GoogleAuthProvider.getCredential(account.idToken, null)
-            firebaseAuth.signInWithCredential(credential).addOnCompleteListener(activity) { task ->
-                if (task.isSuccessful) {
-                    val user = firebaseAuth.currentUser
-                    user?.let {
-                        saveUserToDatabase(it)
-                        navController.navigate("menu") {
-                            popUpTo("login") { inclusive = true }
+        if (result.resultCode == Activity.RESULT_OK) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            try {
+                val account = task.getResult(ApiException::class.java)!!
+                val credential = com.google.firebase.auth.GoogleAuthProvider.getCredential(account.idToken, null)
+                firebaseAuth.signInWithCredential(credential).addOnCompleteListener(activity) { task ->
+                    if (task.isSuccessful) {
+                        val user = firebaseAuth.currentUser
+                        user?.let {
+                            saveUserToDatabase(it)
+                            navController.navigate("menu") {
+                                popUpTo("login") { inclusive = true }
+                            }
                         }
+                    } else {
+                        Toast.makeText(context, "Error al autenticar con Google: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                        Log.e("LoginScreen", "Firebase auth failed", task.exception)
                     }
-                } else {
-                    Toast.makeText(context, "Error al autenticar con Google", Toast.LENGTH_SHORT).show()
                 }
+            } catch (e: ApiException) {
+                Toast.makeText(context, "Error de Google Sign-In: ${e.statusCode} - ${e.message}", Toast.LENGTH_SHORT).show()
+                Log.e("LoginScreen", "Google Sign-In failed", e)
             }
-        } catch (e: ApiException) {
-            Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, "Google Sign-In cancelado", Toast.LENGTH_SHORT).show()
         }
     }
 
+    // Configuración de Google Sign-In (Nota: Esta API está en desuso, considera migrar a Credential Manager)
     val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
         .requestIdToken(context.getString(R.string.default_web_client_id))
         .requestEmail()
         .build()
-    val googleSignInClient: GoogleSignInClient = GoogleSignIn.getClient(context, gso)
+    val googleSignInClient = GoogleSignIn.getClient(context, gso)
 
     Column(
         modifier = Modifier
@@ -95,7 +102,7 @@ fun LoginScreen(navController: NavController) {
                 .padding(bottom = 16.dp)
         )
 
-        // Botón de login con email y contraseña (pendiente de implementación en Firebase)
+        // Botón de login con email y contraseña
         Button(
             onClick = {
                 if (email.isNotEmpty() && password.isNotEmpty()) {
@@ -111,6 +118,7 @@ fun LoginScreen(navController: NavController) {
                                 }
                             } else {
                                 Toast.makeText(context, "Error: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                                Log.e("LoginScreen", "Email/password login failed", task.exception)
                             }
                         }
                 } else {

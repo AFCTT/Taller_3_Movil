@@ -3,11 +3,13 @@ accompanistPermissions = "0.34.0"
 accompanistPermissionsVersion = "0.34.0-alpha"
 agp = "8.10.0"
 androidxCredentials = "1.3.0"
+comGoogleMapsAndroidMapsCompose2 = "6.0.0"
 credentials = "1.5.0"
 credentialsVersion = "1.1.0"
 firebaseAuth = "23.2.0"
 firebaseAuthVersion = "21.1.0"
 firebaseDatabase = "21.0.0"
+googleMapsCompose = "2.6.0"
 googlePlayServicesMaps = "18.1.0"
 kotlin = "2.0.21"
 coreKtx = "1.16.0"
@@ -19,6 +21,7 @@ activityCompose = "1.10.1"
 composeBom = "2024.09.00"
 appcompat = "1.7.0"
 mapsCompose = "2.11.4"
+mapsComposeVersion = "6.2.0"
 navigationCompose = "2.9.0"
 playServicesAuth = "21.3.0"
 playServicesLocation = "21.3.0"
@@ -28,6 +31,8 @@ navigationRuntimeAndroid = "2.9.0"
 navigationComposeAndroid = "2.9.0"
 playServicesMapsVersion = "18.2.0"
 googleid = "1.1.1"
+ui = "1.8.2"
+uiGraphics = "1.8.2"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
@@ -38,6 +43,7 @@ androidx-credentials-play-services-auth = { module = "androidx.credentials:crede
 androidx-credentials-v110 = { module = "androidx.credentials:credentials", version.ref = "credentialsVersion" }
 androidx-credentials-v130 = { module = "androidx.credentials:credentials", version.ref = "androidxCredentials" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+com-google-maps-android-maps-compose-v600 = { module = "com.google.maps.android:maps-compose", version.ref = "comGoogleMapsAndroidMapsCompose2" }
 firebase-auth-v2110 = { module = "com.google.firebase:firebase-auth", version.ref = "firebaseAuthVersion" }
 google-firebase-auth = { module = "com.google.firebase:firebase-auth", version.ref = "firebaseAuth" }
 google-firebase-database = { module = "com.google.firebase:firebase-database", version.ref = "firebaseDatabase" }
@@ -58,6 +64,8 @@ firebase-auth = "com.google.firebase:firebase-auth-ktx:23.2.0"
 firebase-database = "com.google.firebase:firebase-database-ktx:21.0.0"
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "mapsCompose" }
+maps-compose-v260 = { module = "com.google.maps.android:maps-compose", version.ref = "googleMapsCompose" }
+maps-compose-v620 = { module = "com.google.maps.android:maps-compose", version.ref = "mapsComposeVersion" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 play-services-location-v2101 = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocationVersion" }
@@ -67,6 +75,8 @@ androidx-navigation-compose-android = { group = "androidx.navigation", name = "n
 play-services-maps-v1810 = { module = "com.google.android.gms:play-services-maps", version.ref = "googlePlayServicesMaps" }
 play-services-maps-v1820 = { module = "com.google.android.gms:play-services-maps", version.ref = "playServicesMapsVersion" }
 googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
+ui = { module = "androidx.compose.ui:ui", version.ref = "ui" }
+ui-graphics = { module = "androidx.compose.ui:ui-graphics", version.ref = "uiGraphics" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

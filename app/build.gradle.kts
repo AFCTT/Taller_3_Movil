@@ -29,11 +29,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -82,6 +82,18 @@ dependencies {
 
     implementation(libs.androidx.credentials.v130)
     implementation(libs.androidx.credentials.play.services.auth)
+
+    implementation (libs.com.google.maps.android.maps.compose.v600)
+    implementation (libs.play.services.maps)
+
+    implementation (libs.maps.compose.v620)
+
+    dependencies {
+        implementation (libs.ui) // Asegúrate de que la versión de Compose sea compatible
+        implementation (libs.ui.graphics)
+        implementation (libs.maps.compose.v260) // Versión compatible con Compose
+        implementation (libs.play.services.maps)
+    }
 
     // Test
     testImplementation(libs.junit)
