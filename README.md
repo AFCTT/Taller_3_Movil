@@ -55,7 +55,8 @@ Este proyecto es una aplicación Android desarrollada en **Kotlin** con **Jetpac
 - Agregar tu archivo `google-services.json` en la carpeta `/app`.
 - API Key habilitada para Google Maps SDK en Google Cloud Console.
 
-## ✨ Autora
-**Marisol Alfonso**
+## ✨ Autores
+**Juan David Sanchez - juandavid0420-rgb**
+**Andres Centanaro - AFCTT**
 
 ¡Gracias por revisar este proyecto! 💙 Siéntete libre de usarlo y mejorarlo.
