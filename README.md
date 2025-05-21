@@ -48,7 +48,7 @@ Este proyecto es una aplicación Android desarrollada en **Kotlin** con **Jetpac
 ```
 
 ## 📷 Vista previa
-![Icono personalizado en mapa](https://your-screenshot-url.com)
+![Icono personalizado en mapa](images/ic_app)
 
 ## ✅ Requisitos para ejecución
 - Tener configurado Firebase con Auth, Realtime Database y Storage.
