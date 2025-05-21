@@ -88,12 +88,14 @@ dependencies {
 
     implementation (libs.maps.compose.v620)
 
-    dependencies {
-        implementation (libs.ui) // Asegúrate de que la versión de Compose sea compatible
+    implementation("com.google.firebase:firebase-storage-ktx:20.3.0")
+
+
+    implementation (libs.ui) // Asegúrate de que la versión de Compose sea compatible
         implementation (libs.ui.graphics)
         implementation (libs.maps.compose.v260) // Versión compatible con Compose
         implementation (libs.play.services.maps)
-    }
+
 
     // Test
     testImplementation(libs.junit)

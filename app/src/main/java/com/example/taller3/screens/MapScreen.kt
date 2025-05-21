@@ -1,4 +1,5 @@
 package com.example.taller3.screens
+// ✅ IMPORTS NECESARIOS
 import android.Manifest
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
@@ -46,6 +47,7 @@ fun MapScreen(navController: NavController) {
     val polylinePoints = remember { mutableStateListOf<LatLng>() }
     val otherUsers = remember { mutableStateMapOf<String, MutableList<LatLng>>() }
     val userPhotos = remember { mutableStateMapOf<String, BitmapDescriptor>() }
+    val userNames = remember { mutableStateMapOf<String, String>() }
 
     var locationCallback: LocationCallback? by remember { mutableStateOf(null) }
 
@@ -70,6 +72,8 @@ fun MapScreen(navController: NavController) {
                     if (uid != userId) {
                         val isOnline = userSnapshot.child("isOnline").getValue(Boolean::class.java) ?: false
                         val photoUrl = userSnapshot.child("photoUrl").getValue(String::class.java)
+                        val name = userSnapshot.child("name").getValue(String::class.java) ?: "Usuario"
+                        userNames[uid] = name
 
                         if (isOnline) {
                             val latitude = userSnapshot.child("latitude").getValue(Double::class.java) ?: 0.0
@@ -78,7 +82,6 @@ fun MapScreen(navController: NavController) {
                             points.add(LatLng(latitude, longitude))
 
                             if (!userPhotos.containsKey(uid) && !photoUrl.isNullOrEmpty()) {
-                                // Llama a LaunchedEffect en un scope de composición
                                 snapshot.child(uid).ref.child("photoUrl").ref.get().addOnSuccessListener {
                                     val bmp = runBlocking { getBitmapFromUrl(photoUrl) }
                                     bmp?.let {
@@ -99,7 +102,6 @@ fun MapScreen(navController: NavController) {
         })
     }
 
-
     Column(modifier = Modifier.fillMaxSize()) {
         GoogleMap(
             modifier = Modifier.weight(1f),
@@ -107,27 +109,29 @@ fun MapScreen(navController: NavController) {
             properties = mapProperties
         ) {
             if (polylinePoints.isNotEmpty()) {
-                Polyline(points = polylinePoints)
+                Polyline(points = polylinePoints, width = 8f)
                 Marker(state = MarkerState(position = polylinePoints.last()), title = "Tú")
             }
 
             otherUsers.forEach { (uid, points) ->
+                val name = userNames[uid] ?: "Usuario"
                 if (points.size > 1) {
                     for (i in 1 until points.size) {
                         val speed = calculateSpeed(points[i - 1], points[i])
                         Polyline(
                             points = listOf(points[i - 1], points[i]),
-                            color = getColorForSpeed(speed)
+                            color = getColorForSpeed(speed),
+                            width = 10f
                         )
                     }
                 }
 
                 val lastPoint = points.lastOrNull() ?: return@forEach
-                val photo = userPhotos[uid]
+                val photo = userPhotos[uid] ?: BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
                 Marker(
                     state = MarkerState(position = lastPoint),
-                    title = "Usuario $uid",
-                    icon = photo ?: BitmapDescriptorFactory.defaultMarker()
+                    title = name,
+                    icon = photo
                 )
             }
         }
