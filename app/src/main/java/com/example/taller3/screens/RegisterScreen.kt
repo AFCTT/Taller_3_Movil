@@ -1,7 +1,5 @@
 package com.example.taller3.screens
 
-import android.net.ConnectivityManager
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -12,10 +10,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import android.util.Log
 
 @Composable
 fun RegisterScreen(navController: NavController) {
@@ -23,6 +21,7 @@ fun RegisterScreen(navController: NavController) {
     val auth = FirebaseAuth.getInstance()
     val database = FirebaseDatabase.getInstance().reference
 
+    // Estados para los campos de texto
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -39,6 +38,7 @@ fun RegisterScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Campo de nombre
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
@@ -47,35 +47,45 @@ fun RegisterScreen(navController: NavController) {
             modifier = Modifier.fillMaxWidth()
         )
 
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Correo") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            modifier = Modifier.fillMaxWidth()
-        )
+        Spacer(modifier = Modifier.height(8.dp))
 
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Contraseña") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            modifier = Modifier.fillMaxWidth()
-        )
-
+        // Campo de teléfono
         OutlinedTextField(
             value = phone,
             onValueChange = { phone = it },
             label = { Text("Teléfono") },
-            singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Campo de correo
+        OutlinedTextField(
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Correo") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Campo de contraseña
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Contraseña") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(20.dp))
 
+        // Botón de registro
         Button(
             onClick = {
                 if (name.isEmpty() || email.isEmpty() || password.isEmpty() || phone.isEmpty()) {
@@ -94,15 +104,18 @@ fun RegisterScreen(navController: NavController) {
                             "latitude" to 0.0,
                             "longitude" to 0.0
                         )
+
                         database.child("users").child(uid).setValue(userData)
                             .addOnSuccessListener {
                                 Log.d("RegisterScreen", "User data saved successfully")
                                 Toast.makeText(context, "Registro exitoso", Toast.LENGTH_SHORT).show()
-                                navController.navigate("login")
+                                navController.navigate("menu") {
+                                    popUpTo("register") { inclusive = true }
+                                }
                             }
                             .addOnFailureListener { exception ->
                                 Log.e("RegisterScreen", "Failed to save user data: ${exception.message}")
-                                Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Error al guardar datos: ${exception.message}", Toast.LENGTH_SHORT).show()
                             }
                     }
                     .addOnFailureListener { exception ->
@@ -117,13 +130,12 @@ fun RegisterScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        TextButton(onClick = { navController.navigate("login") }) {
+        // Botón para volver a login
+        TextButton(
+            onClick = { navController.navigate("login") },
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        ) {
             Text("¿Ya tienes cuenta? Inicia sesión")
         }
     }
-}
-fun isNetworkAvailable(context: android.content.Context): Boolean {
-    val connectivityManager = ContextCompat.getSystemService(context, ConnectivityManager::class.java)
-    val activeNetwork = connectivityManager?.activeNetworkInfo
-    return activeNetwork != null && activeNetwork.isConnected
 }

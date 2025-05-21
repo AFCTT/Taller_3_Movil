@@ -64,7 +64,7 @@ dependencies {
 
     // Credential Manager (para Google Sign-In nuevo)
     implementation (libs.androidx.credentials)
-    implementation ("androidx.credentials:credentials:1.1.0")
+    implementation (libs.androidx.credentials.v110)
 
     // Play Services Location y Maps (si los usas)
     implementation(libs.play.services.location.v2101)
@@ -79,6 +79,9 @@ dependencies {
     // Otros
     implementation(libs.androidx.appcompat)
     implementation(libs.googleid)
+
+    implementation(libs.androidx.credentials.v130)
+    implementation(libs.androidx.credentials.play.services.auth)
 
     // Test
     testImplementation(libs.junit)
