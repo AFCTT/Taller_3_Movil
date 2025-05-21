@@ -168,6 +168,10 @@ fun MapScreen(navController: NavController) {
                         dbRef.child(userId).child("isOnline").setValue(checked)
 
                         if (checked) {
+                            // 🔄 BORRAR LA RUTA ANTERIOR AL ACTIVAR SEGUIMIENTO
+                            pathRef.child(userId).removeValue()
+                            polylinePoints.clear()
+
                             val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 4000L)
                                 .setMinUpdateIntervalMillis(2000L)
                                 .build()
