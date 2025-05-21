@@ -1,55 +1,29 @@
 package com.example.taller3.screens
-
 import android.Manifest
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
+import android.graphics.BitmapFactory
 import android.location.Location
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import android.util.Log
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.location.*
+import com.google.android.gms.maps.model.*
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
-import com.google.maps.android.compose.CameraPositionState
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.MapProperties
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
-import com.google.maps.android.compose.Polyline
-import com.google.maps.android.compose.rememberCameraPositionState
-import android.util.Log
+import com.google.firebase.database.*
+import com.google.maps.android.compose.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import java.net.URL
 
 @SuppressLint("MissingPermission")
 @OptIn(ExperimentalPermissionsApi::class)
@@ -71,8 +45,8 @@ fun MapScreen(navController: NavController) {
     var isTracking by remember { mutableStateOf(false) }
     val polylinePoints = remember { mutableStateListOf<LatLng>() }
     val otherUsers = remember { mutableStateMapOf<String, MutableList<LatLng>>() }
+    val userPhotos = remember { mutableStateMapOf<String, BitmapDescriptor>() }
 
-    // Definir locationCallback fuera del Switch para usarlo en removeLocationUpdates
     var locationCallback: LocationCallback? by remember { mutableStateOf(null) }
 
     LaunchedEffect(permissionState.allPermissionsGranted) {
@@ -87,20 +61,31 @@ fun MapScreen(navController: NavController) {
         }
     }
 
-    // Listener para otros usuarios
     LaunchedEffect(Unit) {
         dbRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 otherUsers.clear()
                 snapshot.children.forEach { userSnapshot ->
                     val uid = userSnapshot.key ?: return@forEach
-                    if (uid != userId && otherUsers.size < 100) {
+                    if (uid != userId) {
                         val isOnline = userSnapshot.child("isOnline").getValue(Boolean::class.java) ?: false
+                        val photoUrl = userSnapshot.child("photoUrl").getValue(String::class.java)
+
                         if (isOnline) {
                             val latitude = userSnapshot.child("latitude").getValue(Double::class.java) ?: 0.0
                             val longitude = userSnapshot.child("longitude").getValue(Double::class.java) ?: 0.0
                             val points = otherUsers.getOrPut(uid) { mutableStateListOf() }
                             points.add(LatLng(latitude, longitude))
+
+                            if (!userPhotos.containsKey(uid) && !photoUrl.isNullOrEmpty()) {
+                                // Llama a LaunchedEffect en un scope de composición
+                                snapshot.child(uid).ref.child("photoUrl").ref.get().addOnSuccessListener {
+                                    val bmp = runBlocking { getBitmapFromUrl(photoUrl) }
+                                    bmp?.let {
+                                        userPhotos[uid] = BitmapDescriptorFactory.fromBitmap(Bitmap.createScaledBitmap(it, 100, 100, false))
+                                    }
+                                }
+                            }
                         } else {
                             otherUsers.remove(uid)
                         }
@@ -114,37 +99,41 @@ fun MapScreen(navController: NavController) {
         })
     }
 
+
     Column(modifier = Modifier.fillMaxSize()) {
         GoogleMap(
             modifier = Modifier.weight(1f),
             cameraPositionState = cameraPositionState,
             properties = mapProperties
         ) {
-            // Ruta y marcador del usuario
             if (polylinePoints.isNotEmpty()) {
-                Polyline(polylinePoints)
-                Marker(
-                    state = MarkerState(position = polylinePoints.last()),
-                    title = "Tú"
-                )
+                Polyline(points = polylinePoints)
+                Marker(state = MarkerState(position = polylinePoints.last()), title = "Tú")
             }
 
-            // Marcadores y rutas de otros usuarios
             otherUsers.forEach { (uid, points) ->
-                if (points.isNotEmpty()) {
-                    Polyline(points)
-                    Marker(
-                        state = MarkerState(position = points.last()),
-                        title = "Usuario $uid"
-                    )
+                if (points.size > 1) {
+                    for (i in 1 until points.size) {
+                        val speed = calculateSpeed(points[i - 1], points[i])
+                        Polyline(
+                            points = listOf(points[i - 1], points[i]),
+                            color = getColorForSpeed(speed)
+                        )
+                    }
                 }
+
+                val lastPoint = points.lastOrNull() ?: return@forEach
+                val photo = userPhotos[uid]
+                Marker(
+                    state = MarkerState(position = lastPoint),
+                    title = "Usuario $uid",
+                    icon = photo ?: BitmapDescriptorFactory.defaultMarker()
+                )
             }
         }
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text("Compartir ubicación")
@@ -169,16 +158,9 @@ fun MapScreen(navController: NavController) {
                                 cameraPositionState.position = CameraPosition.fromLatLngZoom(latLng, 15f)
                             }
                         }
-
-                        fusedLocationClient.requestLocationUpdates(
-                            locationRequest,
-                            locationCallback!!,
-                            context.mainLooper
-                        )
+                        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback!!, context.mainLooper)
                     } else {
-                        locationCallback?.let { callback ->
-                            fusedLocationClient.removeLocationUpdates(callback)
-                        }
+                        locationCallback?.let { fusedLocationClient.removeLocationUpdates(it) }
                         polylinePoints.clear()
                         dbRef.child(userId).child("latitude").setValue(0.0)
                         dbRef.child(userId).child("longitude").setValue(0.0)
@@ -189,11 +171,29 @@ fun MapScreen(navController: NavController) {
     }
 }
 
-fun createCustomMarker(color: Int): Bitmap {
-    val size = 50
-    val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-    val canvas = Canvas(bitmap)
-    val paint = Paint().apply { this.color = color }
-    canvas.drawCircle((size / 2).toFloat(), (size / 2).toFloat(), (size / 2).toFloat(), paint)
-    return bitmap
+fun getColorForSpeed(speed: Float): Color {
+    return when {
+        speed < 5 -> Color.Blue
+        speed < 15 -> Color.Green
+        else -> Color.Red
+    }
+}
+
+fun calculateSpeed(start: LatLng, end: LatLng): Float {
+    val results = FloatArray(1)
+    Location.distanceBetween(start.latitude, start.longitude, end.latitude, end.longitude, results)
+    return results[0] / 4
+}
+
+suspend fun getBitmapFromUrl(url: String): Bitmap? {
+    return withContext(Dispatchers.IO) {
+        try {
+            val connection = URL(url).openConnection()
+            connection.connect()
+            val input = connection.getInputStream()
+            BitmapFactory.decodeStream(input)
+        } catch (e: Exception) {
+            null
+        }
+    }
 }

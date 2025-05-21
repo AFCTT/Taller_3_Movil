@@ -100,6 +100,7 @@ fun RegisterScreen(navController: NavController) {
                             "name" to name,
                             "email" to email,
                             "phone" to phone,
+                            "photoUrl" to "",
                             "isOnline" to false,
                             "latitude" to 0.0,
                             "longitude" to 0.0

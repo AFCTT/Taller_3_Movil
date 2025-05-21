@@ -160,6 +160,7 @@ fun saveUserToDatabase(user: FirebaseUser) {
                 "name" to (user.displayName ?: ""),
                 "email" to user.email,
                 "phone" to "",
+                "photoUrl" to (user.photoUrl?.toString() ?: ""),
                 "isOnline" to false,
                 "latitude" to 0.0,
                 "longitude" to 0.0
